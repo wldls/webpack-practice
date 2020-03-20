@@ -23,7 +23,7 @@ module.exports = {
 				test: /\.(png|jpg|gif|svg)$/,
 				loader: 'url-loader',
 				options: {
-					public: './dist/',
+					publicPath: './dist/',
 					name: '[name].[ext]?[hash]',
 					limit: 20000, // 20kb
 				}
@@ -34,9 +34,14 @@ module.exports = {
 		new webpack.BannerPlugin({
 			banner: `
 				Build Date: ${new Date().toLocaleString()}
-				Commit Version: ${childProcess.execSync('git ver-parse --short HEAD')}
-				Author: ${childProcess.execSync('git config user.name')}
+				Commit Version: ${childProcess.execSync('git rev-parse --short HEAD')}
+				Author: ${childrocess.execSync('git config user.name')}
 			`
+		}),
+		new webpack.DefinePlugin({
+			TWO: JSON.stringify('1+1'),
+			'api.domain': JSON.stringify('http://dev.api.domain.com')
 		})
 	]
 }
+
