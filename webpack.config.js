@@ -4,15 +4,45 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const apiMocker = require('connect-api-mocker');
 
 module.exports = {
 	mode: 'development',
 	entry: {
-		main: './app.js'
+		main: './src/app.js'
 	},
 	output: {
 		path: path.resolve('./dist'),
 		filename: '[name].js'
+	},
+	devServer: {
+		// contentBase: path.join(__dirname, "dist"),
+		// publicPath: "/",
+		// host: "",
+		proxy: {'/api': 'http://localhost:8081'},
+		overlay: true,
+		// port: 3000,
+		stats: "errors-only",
+		before: (app) => {
+			app.use(apiMocker('/api', 'mocks/api'));
+			// app.get("/api/users/", (req, res) => {
+			// 	res.json([
+			// 		{
+			// 			id: 1,
+			// 			name: "Alice"
+			// 		},
+			// 		{
+			// 			id: 2,
+			// 			name: "Bek"
+			// 		},
+			// 		{
+			// 			id: 3,
+			// 			name: "Chris"
+			// 		},
+			// 	])
+			// })
+		}
+		// historyApiFallback: true	// spa 개발시 사용
 	},
 	module: {
 		rules: [
