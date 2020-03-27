@@ -5,16 +5,22 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const apiMocker = require('connect-api-mocker');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
+
+const mode = process.env.NODE_ENV || 'development';
 
 module.exports = {
-	mode: 'development',
+	mode,
 	entry: {
-		main: './src/app.js'
+		main: './src/app.js',
+		// result: './src/result.js'
 	},
 	output: {
 		path: path.resolve('./dist'),
 		filename: '[name].js'
-	},
+	},	
 	devServer: {
 		// contentBase: path.join(__dirname, "dist"),
 		// publicPath: "/",
@@ -23,6 +29,7 @@ module.exports = {
 		overlay: true,
 		// port: 3000,
 		stats: "errors-only",
+		hot: true,
 		before: (app) => {
 			app.use(apiMocker('/api', 'mocks/api'));
 			// app.get("/api/users/", (req, res) => {
@@ -43,6 +50,24 @@ module.exports = {
 			// })
 		}
 		// historyApiFallback: true	// spa 개발시 사용
+	},
+	optimization: {
+		minimizer: mode === 'production' ? [
+			new OptimizeCSSAssetsPlugin(),
+			new TerserPlugin({
+				terserOptions: {
+					compress: {
+						drop_console: true	// 콘솔 로그를 제거
+					}
+				}
+			})
+		] : [],
+		// splitChunks: {
+		// 	chunks: "all"
+		// }
+	},
+	externals: {
+		axios: 'axios'	// 웹팩으로 build할 때 aixos를 사용하는 부분이 있으면 전역변수 axios를 사용
 	},
 	module: {
 		rules: [
@@ -98,7 +123,11 @@ module.exports = {
 		...(process.env.NODE_ENV === 'production'
 			? [new MiniCssExtractPlugin({ filename: '[name].css' })]
 			: []
-		)
+		),
+		new CopyPlugin([{
+			from: './node_modules/axios/dist/axios.min.js',
+			to: './axios.min.js'
+		}])
 	]
 }
 
